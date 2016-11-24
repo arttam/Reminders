@@ -1,0 +1,10 @@
+# Clion can be different, depending on host you are working on
+.idea/
+
+# Autosave not needed
+*.autosave
+
+# Do not need any compilation results
+*.o
+Qt/Makefile
+Qt/Reminder

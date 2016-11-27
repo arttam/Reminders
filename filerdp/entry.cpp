@@ -1,0 +1,42 @@
+#include <regex>
+#include <algorithm>
+#include <iterator>
+
+#include "entry.h"
+
+std::ostream& operator<<(std::ostream& os, const Entry& entry)
+{
+    std::copy(entry.values_.begin(), entry.values_.end(), std::ostream_iterator<std::string>(os, ":"));
+    return os;
+}
+
+Entry::Entry(const std::string& line)
+{
+    std::regex _colon(":");
+
+    std::sregex_token_iterator _sBegin(line.begin(), line.end(), _colon, -1);
+    std::sregex_token_iterator _sEnd;
+
+    std::copy(_sBegin, _sEnd, std::back_inserter(values_));
+}
+
+std::string& Entry::getValue(size_t idx)
+{
+    // Error checks goes here ????
+    return values_[idx];
+}
+
+bool Entry::setEntry(const Entry& entry)
+{
+    values_ = entry.values_;
+    return true;
+}
+
+bool Entry::setValue(size_t idx, const std::string& value)
+{
+    if (idx >= values_.size())
+        return false;
+
+    values_[idx] = value;
+    return true;
+}

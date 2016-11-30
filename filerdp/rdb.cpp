@@ -10,6 +10,10 @@ RDB::RDB(const char* path):rdbPath_(path)
 
 bool RDB::parse()
 {
+    // TODO: Replace with something meaningful
+    if (rdbPath_.empty()) {
+        rdbPath_.assign("/home/art/QtProjects/reminder-db/rdb");
+    }
 
     fileHandler _fh(rdbPath_.c_str());
     if (!_fh) {

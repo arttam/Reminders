@@ -40,3 +40,11 @@ bool Entry::setValue(size_t idx, const std::string& value)
     values_[idx] = value;
     return true;
 }
+
+void Entry::operator>>(std::vector<char>& dest)
+{
+    for(auto &value: values_) {
+        std::copy(value.begin(), value.end(), std::back_inserter(dest));
+        dest.push_back(':');
+    }
+}

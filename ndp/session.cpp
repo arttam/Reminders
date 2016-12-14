@@ -92,19 +92,16 @@ void Session::parseRequest(std::size_t len)
             std::vector<Entry>& _entries = rdb_.getAllEntries();
             std::stringstream _sstr;
             for(auto &entry: _entries) {
-                _sstr << entry << "\r\n";
+                entry >> response_;
+                response_.push_back('\r');
+                response_.push_back('\n');
             }
-            std::string _respStr(_sstr.str());
-            std::copy(_respStr.str().begin(), _respStr.str().end(), std::back_inserter(response_));
         }
         else {
             Entry _response;
             std::string _getParm(_request.at(1));
             if (rdb_.getEntry(_getParm, _response)) {
-                std::stringstream _sstr;
-                _sstr << _response;
-                std::string _respStr(_sstr.str());
-                std::copy(_respStr.str().begin(), _respStr.str().end(), std::back_inserter(response_));
+                _response >> response_;
             }
             else {
                 _cmd.insert(0, "ERROR: Not found: ");

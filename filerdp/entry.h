@@ -20,6 +20,7 @@ public:
     bool setValue(size_t idx, const std::string& value);
 
     friend std::ostream& operator<<(std::ostream& os, const Entry& entry);
+    void operator>>(std::vector<char>&);
 };
 
 std::ostream& operator<<(std::ostream& os, const Entry& entry);

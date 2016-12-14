@@ -56,6 +56,23 @@ bool RDB::setEntry(Entry entry)
     return true;
 }
 
+bool RDB::setEntry(const std::string& name, const std::string& field, const std::string& value)
+{
+    std::vector<Entry>::iterator _findNameIt = std::find_if(entries_.begin(), entries_.end(), [&name](Entry& element){ return (element.getValue(0).compare(name) == 0); });
+    if (_findNameIt == entries_.end()) {
+        lastError_.assign("Entry: ").append(name).append(" not found");
+        return false;
+    }
+
+    std::vector<std::string>::iterator _findFieldIt = std::find(fields_.begin(), fields_.end(), field);
+    if (_findFieldIt == fields_.end()) {
+        lastError_.assign("Field: ").append(field).append(" not found");
+        return false;
+    }
+
+    return _findNameIt->setValue(std::distance(fields_.begin(), _findFieldIt), value);
+}
+
 std::vector<std::string> RDB::getNames()
 {
     std::vector<std::string> _names;

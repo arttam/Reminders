@@ -11,7 +11,7 @@
 
 int main(int argc, char *argv[])
 {
-    char defaultPath[] = "/home/art/QtProjects/reminder-db/rdb";
+    char defaultPath[] = "/home/art/git/Reminders/reminder-test/rdb";
     char *rdbPath = defaultPath;
 
     if (argc > 1) {
@@ -24,36 +24,20 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    std::cout << "Fields: " << std::endl;
     std::vector<std::string> _fields(_rdb.getFields());
-    std::copy(_fields.begin(), _fields.end(), std::ostream_iterator<std::string>(std::cout, "\r\n"));
 
-    std::cout << "Entries: " << std::endl;
-    std::vector<std::string> _names(_rdb.getNames());
-    std::copy(_names.begin(), _names.end(), std::ostream_iterator<std::string>(std::cout, "\r\n"));
-
-    Entry _amazon;
-    if (_rdb.getEntry("Amazon", _amazon)) {
-        std::cout << "Login: " << _amazon.getValue(1) << std::endl;
-    }
-    else {
-        std::cout << "Not found :-(" << std::endl;
-    }
-
-    Entry _newOne("Edit:Test:Entry:N/A:somepwd:Some Description");
+    Entry _newOne("Edit:TestOverwrite:Entry:N/A:somepwd:Some Description");
     _rdb.setEntry(_newOne);
 
-    _newOne.setValue(1, "EditedTest");
-    _rdb.setEntry(_newOne);
-
-    _rdb.deleteEntry("Edit");
+    _rdb.setEntry("Edit", "Type", "SetField3");
 
     if (_rdb.saveDB()) {
-        std::cout << "Saved successfully " << std::endl;
+        std::cout << "Saved successfully" << std::endl;
     }
     else {
-        std::cout << "Failed to save DB" << std::endl;
+        std::cerr << "Failed to save changes" << std::endl;
     }
+
 
     return 0;
 }

@@ -3,28 +3,15 @@
 #include <algorithm>
 #include <regex>
 
-RDB::RDB(const char* path):rdbPath_(path)
+RDB::RDB()
 {
 
 }
 
-bool RDB::parse()
+bool RDB::readDB(std::string data)
 {
-    // TODO: Replace with something meaningful
-    if (rdbPath_.empty()) {
-        rdbPath_.assign("/home/art/QtProjects/reminder-db/rdb");
-    }
-
-    fileHandler _fh(rdbPath_.c_str());
-    if (!_fh) {
-        std::cerr << "Cannot open file" << rdbPath_ << std::endl;
-        return false;
-    }
-
-    std::string _dbData(_fh.getContents());
-
     std::regex _rEOL("\\n");
-    std::sregex_token_iterator _dLine(_dbData.begin(), _dbData.end(), _rEOL, -1);
+    std::sregex_token_iterator _dLine(data.begin(), data.end(), _rEOL, -1);
 
     // First line - fields names
     Entry _fields(*_dLine++);
@@ -86,24 +73,11 @@ std::vector<std::string>& RDB::getFields()
    return fields_;
 }
 
-bool RDB::saveDB()
+bool RDB::saveDB(std::ostream& os)
 {
-    fileHandler _fh(rdbPath_.c_str(), true);
-    if (!_fh) {
-        return false;
-    }
-
-    std::ostream& _fos = _fh.getStream();
-    std::copy(fields_.begin(), fields_.end(), std::ostream_iterator<std::string>(_fos, ":"));
-    _fos << std::endl;
-    std::copy(entries_.begin(), entries_.end(), std::ostream_iterator<Entry>(_fos, "\n"));
-    /*
-    for(auto &entry: entries_) {
-        std::cout << "Writing as '" << entry << "'" << std::endl;
-        _fos << entry;
-        _fos << std::endl;
-    }
-    */
+    std::copy(fields_.begin(), fields_.end(), std::ostream_iterator<std::string>(os, ":"));
+    os << std::endl;
+    std::copy(entries_.begin(), entries_.end(), std::ostream_iterator<Entry>(os, "\n"));
 
     return true;
 }

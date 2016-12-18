@@ -4,7 +4,10 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-    filehandler.cpp
+    entry.cpp \
+    rdb.cpp
 
 HEADERS += \
-    filehandler.h
+    entry.h \
+    entrytype.h \
+    rdb.h

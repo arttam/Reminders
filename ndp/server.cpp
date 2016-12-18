@@ -9,13 +9,18 @@
 using boost::asio::ip::tcp;
 
 Server::Server(short port, const char *rdbPath)
-    : rdb_(rdbPath)
+    : rdbPath_(rdbPath)
     , io_service_()
     , acceptor_(io_service_, tcp::endpoint(tcp::v4(), port))
     , socket_(io_service_)
     , signals_(io_service_)
 {
-    if (!rdb_.parse()) {
+    fileHandler _fh(rdbPath);
+    if (!_fh) {
+        throw std::runtime_error("Failed to open db file for reading");
+    }
+
+    if (!rdb_.readDB(_fh.getContents())) {
         throw std::runtime_error("Failed to get valid data");
     }
 
@@ -40,7 +45,7 @@ void Server::do_accept()
                 return;
 
             if (!ec) {
-                std::make_shared<Session>(Session(std::move(socket_), rdb_))->start();
+                std::make_shared<Session>(Session(std::move(socket_), rdb_, rdbPath_))->start();
             }
 
             do_accept();

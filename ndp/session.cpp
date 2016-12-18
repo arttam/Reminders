@@ -6,9 +6,10 @@
 
 #include "session.h"
 
-Session::Session(tcp::socket socket, RDB& rdb)
+Session::Session(tcp::socket socket, RDB& rdb, std::string& rdbPath)
     : reFwdSlash_{"/"}
     , socket_(std::move(socket))
+    , rdbPath_(rdbPath)
     , rdb_(rdb)
 {
 }
@@ -26,10 +27,15 @@ void Session::do_read()
     );
 }
 
-void Session::do_write(std::size_t len)
+void Session::do_write()
 {
+    // Every respnse should be finished with empty line
+    // i.e. only containing \r\n sequence
+    response_.push_back('\r');
+    response_.push_back('\n');
+
     auto self(shared_from_this());
-    boost::asio::async_write(socket_, boost::asio::buffer(response_, len),
+    boost::asio::async_write(socket_, boost::asio::buffer(response_, response_.size()),
         [this, self](boost::system::error_code ec, std::size_t)
         {
             if (!ec) {
@@ -62,7 +68,7 @@ void Session::parseRequest(std::size_t len)
         // No valid command found - leaving
         _cmd.insert(0, "ERROR: Not valid query: ");
         std::copy(_cmd.begin(), _cmd.end(), std::back_inserter(response_));
-        do_write(response_.size());
+        do_write();
         return;
     }
 
@@ -71,6 +77,8 @@ void Session::parseRequest(std::size_t len)
     {
         std::string _err(errMsg);
         std::copy(_err.begin(), _err.end(), std::back_inserter(e_response_));
+        e_response_.push_back('\r');
+        e_response_.push_back('\n');
     };
 
     // As we starting with forward slash ...
@@ -82,7 +90,7 @@ void Session::parseRequest(std::size_t len)
         // No valid command found - leaving
         _cmd.insert(0, "ERROR: Not valid query: ");
         std::copy(_cmd.begin(), _cmd.end(), std::back_inserter(response_));
-        do_write(response_.size());
+        do_write();
         return;
     }
 
@@ -142,6 +150,18 @@ void Session::parseRequest(std::size_t len)
             buildError("ERROR: set requires either 2 or 4 parameters");
         }
     }
+    else if (_request.at(0).compare("delete") == 0) {
+        if (rdb_.deleteEntry(_request.at(1))) {
+            buildError("SUCCESS");
+        }
+        else {
+            std::string _err{"ERROR: Failed to delete "};
+            _err.append(_request.at(1));
+            _err.append("; ");
+            _err.append(rdb_.getLastError());
+            buildError(_err.c_str());
+        }
+    }
     else if (_request.at(0).compare("fields") == 0) {
         std::vector<std::string>& _fields = rdb_.getFields();
         for(auto &field: _fields) {
@@ -152,20 +172,29 @@ void Session::parseRequest(std::size_t len)
         }
     }
     else if (_request.at(0).compare("commit") == 0) {
-        if (rdb_.saveDB()) {
-            buildError("SUCCESS");
+
+        fileHandler _fh(rdbPath_.c_str(), true);
+        if (!_fh) {
+            buildError("Failed to open db file for writting");
         }
         else {
-            std::string _err{"Failed to preserve DB: "};
-            _err.append(rdb_.getLastError());
-            std::copy(_err.begin(), _err.end(), std::back_inserter(response_));
+            if (rdb_.saveDB(_fh.getStream())) {
+                buildError("SUCCESS");
+            }
+            else {
+                std::string _err{"Failed to preserve DB: "};
+                _err.append(rdb_.getLastError());
+                std::copy(_err.begin(), _err.end(), std::back_inserter(response_));
+            }
         }
     }
     else {
         _cmd.insert(0, "ERROR: Unrecognized command: ");
         std::copy(_cmd.begin(), _cmd.end(), std::back_inserter(response_));
     }
-    do_write(response_.size());
+    response_.push_back('\r');
+    response_.push_back('\n');
+    do_write();
 }
 
 

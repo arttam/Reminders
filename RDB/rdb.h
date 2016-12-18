@@ -5,19 +5,17 @@
 #include <vector>
 #include <iostream>
 
-#include "filehandler.h"
 #include "entry.h"
 
 class RDB
 {
-    std::string rdbPath_;
     std::string lastError_;
     std::vector<std::string> fields_;
     std::vector<Entry> entries_;
 
 public:
-    RDB(const char* path);
-    bool parse();
+    RDB();
+    bool readDB(std::string data);
 
     std::string getLastError() const { return lastError_; }
 
@@ -30,7 +28,7 @@ public:
     size_t getFieldsCount() { return fields_.size(); }
     std::vector<Entry>& getAllEntries() { return entries_; }
 
-    bool saveDB();
+    bool saveDB(std::ostream& os);
     bool deleteEntry(const std::string name);
 };
 

@@ -4,7 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-    filehandler.cpp
+    rdpclient.cpp
 
 HEADERS += \
-    filehandler.h
+    rdpclient.h
